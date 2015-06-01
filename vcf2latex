@@ -1,51 +1,50 @@
 #!/usr/bin/env python
 
 import os, sys
+import hashlib
 import vobject
 
 def usage():
     print "Usage: " + sys.argv[0] + " /path/to/vcf"
 
-def addline(lines, key, value):
-    lines.append((u"%s = \"%s\"" % (key, value)).encode('utf8'))
-
 def gen(card):
     
-    print "@person{key,"
-
-    lines = []
+    lines = {}
     if hasattr(card, 'fn'):
-        addline(lines, "name", card.fn.value)
+        lines["name"] = card.fn.value
+    else:
+        return
 
     if hasattr(card, 'tel'):
         for tel in card.tel_list:
             if tel.type_param == 'HOME':
-                addline(lines, "p.phone", tel.value)
+                lines["p.phone"] = tel.value
             elif tel.type_param == 'CELL':
-                addline(lines, "p.cellular", tel.value)
+                lines["p.cellular"] = tel.value
             elif tel.type_param == 'WORK':
-                addline(lines, "w.phone", tel.value)
+                lines["w.phone"] = tel.value
             else:
-                addline(lines, "r.phone", tel.value)
+                lines["r.phone"] = tel.value
+    else:
+        return
             
     if hasattr(card, 'email'):
         for email in card.email_list:
             if email.type_param == 'HOME':
-                addline(lines, "p.email", email.value)
+                lines["p.email"] = email.value
             elif email.type_param == 'WORK':
-                addline(lines, "w.email", email.value)
+                lines["w.email"] = email.value
             else:
-                addline(lines, "r.email", email.value)                
+                lines["r.email"] = email.value
 
-    print ", \n".join(lines)
-    
+    print "@person{%s," % (hashlib.md5(card.__str__()).hexdigest(), )
+    print ", \n".join(map(lambda (k,v): (u"%s = \"%s\"" % (k, v)).encode('utf8'), lines.items()))
     print "}\n"
 
 def parse(cards):
     try:
         card = cards.next()
         gen(card)
-        #print card
         parse(cards)
     except StopIteration:
         pass
