@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 
 import os, sys
-import hashlib
 import vobject
 
 def usage():
     print "Usage: " + sys.argv[0] + " /path/to/vcf"
 
-def gen(card):
-    
+def gen(idx, entries, card):
     lines = {}
     if hasattr(card, 'fn'):
-        lines["name"] = card.fn.value
+        name = card.fn.value
+        i = 1
+        while name in entries:
+            name = "%s (%d)" % (name, i)
+            i += 1
+        lines["name"] = name
     else:
-        return
+        return (idx, entries)
 
     if hasattr(card, 'tel'):
         for tel in card.tel_list:
@@ -26,8 +29,8 @@ def gen(card):
             else:
                 lines["r.phone"] = tel.value
     else:
-        return
-            
+        return (idx, entries)
+
     if hasattr(card, 'email'):
         for email in card.email_list:
             if email.type_param == 'HOME':
@@ -37,15 +40,21 @@ def gen(card):
             else:
                 lines["r.email"] = email.value
 
-    print "@person{%s," % (hashlib.md5(card.__str__()).hexdigest(), )
+    print u"@person{entry%03d," % (idx, )
     print ", \n".join(map(lambda (k,v): (u"%s = \"%s\"" % (k, v)).encode('utf8'), lines.items()))
-    print "}\n"
+    print u"}\n"
 
-def parse(cards):
+    entries.add(lines["name"])
+    return (idx+1, entries)
+
+def init_parse(cards):
+    entries = set()
+    parse(1, entries, cards)
+
+def parse(idx, entries, cards):
     try:
-        card = cards.next()
-        gen(card)
-        parse(cards)
+        (newidx, entries2) = gen(idx, entries, cards.next())
+        parse(newidx, entries2, cards)
     except StopIteration:
         pass
 
@@ -59,7 +68,7 @@ def main(args):
         sys.exit(1)
 
     with open(args[0]) as f:
-        parse(vobject.readComponents(f))
+        init_parse(vobject.readComponents(f))
 
     sys.exit(0)
     
