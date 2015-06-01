@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+
+import os, sys
+import vobject
+
+def usage():
+    print "Usage: " + sys.argv[0] + " /path/to/vcf"
+
+def addline(lines, key, value):
+    lines.append((u"%s = \"%s\"" % (key, value)).encode('utf8'))
+
+def gen(card):
+    
+    print "@person{key,"
+
+    lines = []
+    if hasattr(card, 'fn'):
+        addline(lines, "name", card.fn.value)
+
+    if hasattr(card, 'tel'):
+        for tel in card.tel_list:
+            if tel.type_param == 'HOME':
+                addline(lines, "p.phone", tel.value)
+            elif tel.type_param == 'CELL':
+                addline(lines, "p.cellular", tel.value)
+            elif tel.type_param == 'WORK':
+                addline(lines, "w.phone", tel.value)
+            else:
+                addline(lines, "r.phone", tel.value)
+            
+    if hasattr(card, 'email'):
+        for email in card.email_list:
+            if email.type_param == 'HOME':
+                addline(lines, "p.email", email.value)
+            elif email.type_param == 'WORK':
+                addline(lines, "w.email", email.value)
+            else:
+                addline(lines, "r.email", email.value)                
+
+    print ", \n".join(lines)
+    
+    print "}\n"
+
+def parse(cards):
+    try:
+        card = cards.next()
+        gen(card)
+        #print card
+        parse(cards)
+    except StopIteration:
+        pass
+
+def main(args):
+    if (len(args) < 1):
+        usage()
+        sys.exit(1)
+
+    if (not os.path.exists(args[0])):
+        print "E: Invalid path " + args[0]
+        sys.exit(1)
+
+    with open(args[0]) as f:
+        parse(vobject.readComponents(f))
+
+    sys.exit(0)
+    
+if __name__ == '__main__':
+    main(sys.argv[1:])
