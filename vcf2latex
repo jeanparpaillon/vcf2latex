@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 import os, sys
+import collections
 import vobject
 
 def usage():
     print "Usage: " + sys.argv[0] + " /path/to/vcf"
 
 def gen(idx, entries, card):
-    lines = {}
+    lines = collections.OrderedDict()
     if hasattr(card, 'fn'):
         name = card.fn.value
         i = 1
@@ -15,6 +16,8 @@ def gen(idx, entries, card):
             name = "%s (%d)" % (name, i)
             i += 1
         lines["name"] = name
+        if name <> card.fn.value:
+            lines["nickname"] = card.fn.value
     else:
         return (idx, entries)
 
