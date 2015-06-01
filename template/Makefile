@@ -10,3 +10,6 @@ include /usr/share/texmf/scripts/latex-make/LaTeX.mk
 
 all.bib: $(VCF) $(VCF2LATEX)
 	$(VCF2LATEX) $< > $@
+
+allclean: distclean
+	-rm -f all.bib

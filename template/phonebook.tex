@@ -1,5 +1,6 @@
-\documentclass[a4paper,11pt,twoside]{article}
+\documentclass[a5paper,11pt,twoside]{report}
 \usepackage[T1]{fontenc}
+\usepackage[utf8x]{inputenc}
 \usepackage[french]{directory}
 % CUSTOM: uncomment one of the following:
 % \directorystyle{email}
@@ -12,9 +13,18 @@
 % \directorystyle{address-ldif}
 \directorystyle{address}
 
+\usepackage{geometry}
+\usepackage[cm]{fullpage}
+
 \begin{document}
 
-%\directorystyle{}
+\title{Adresses}
+\author{Jean Parpaillon}
+
+\date{\today}
+
+\maketitle
+
 \nodir{*}
 \directory{all}
 
